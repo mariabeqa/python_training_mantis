@@ -3,6 +3,10 @@ from fixture.application import Application
 import pytest
 import json
 import os.path
+from fixture.db import DbFixture
+from generator import test_data_generator
+
+from model.project import Project
 
 fixture=None
 target=None
@@ -16,17 +20,20 @@ def load_config(file):
             target = json.load(f)
     return target
 
+
 @pytest.fixture()
 def app(request):
     global fixture
     global target
 
     browser = request.config.getoption("--browser")
-    web_config = load_config(request.config.getoption("--target"))['web']
+    web_config = load_config(request.config.getoption("--target"))
 
     if fixture is None or not fixture.is_valid():
-        fixture = Application(browser=browser, base_url=web_config['baseUrl'])
+        fixture = Application(browser=browser, base_url=web_config['web']['baseUrl'])
+        fixture.session.ensure_login(username=web_config['webAdmin']['username'], password=web_config['webAdmin']['password'])
     return fixture
+
 
 @pytest.fixture(scope="session", autouse=True)
 def stop(request):
@@ -35,6 +42,25 @@ def stop(request):
         fixture.destroy()
     request.addfinalizer(fin)
     return fixture
+
+
+@pytest.fixture(scope="session")
+def db(request):
+    db_config = load_config(request.config.getoption("--target"))['db']
+    dbfixture = DbFixture(host=db_config['host'], name=db_config['name'], user=db_config['user'], password=db_config['password'])
+    def fin():
+        dbfixture.destroy()
+    request.addfinalizer(fin)
+    return dbfixture
+
+
+@pytest.fixture
+def gen_project():
+    return Project(
+        name=test_data_generator.get_project_name(),
+        description=test_data_generator.get_project_description()
+    )
+
 
 def pytest_addoption(parser):
     parser.addoption("--browser", action="store", default="firefox")
