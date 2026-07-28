@@ -20,17 +20,20 @@ def load_config(file):
             target = json.load(f)
     return target
 
+@pytest.fixture(scope="session", autouse=True)
+def config(request):
+    return load_config(request.config.getoption("--target"))
 
 @pytest.fixture()
-def app(request):
+def app(request, config):
     global fixture
     global target
 
     browser = request.config.getoption("--browser")
-    web_config = load_config(request.config.getoption("--target"))
+    web_config = config
 
     if fixture is None or not fixture.is_valid():
-        fixture = Application(browser=browser, base_url=web_config['web']['baseUrl'])
+        fixture = Application(browser=browser, config=config)
         fixture.session.ensure_login(username=web_config['webAdmin']['username'], password=web_config['webAdmin']['password'])
     return fixture
 
