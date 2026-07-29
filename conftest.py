@@ -4,6 +4,7 @@ import pytest
 import json
 import os.path
 from fixture.db import DbFixture
+from fixture.soap import SOAPFixture
 from generator import test_data_generator
 
 from model.project import Project
@@ -55,6 +56,15 @@ def db(request):
         dbfixture.destroy()
     request.addfinalizer(fin)
     return dbfixture
+
+
+@pytest.fixture(scope="session")
+def soap(request, config):
+    return SOAPFixture(
+        url=config['soap']['url'],
+        username=config['webAdmin']['username'],
+        password=config['webAdmin']['password']
+    )
 
 
 @pytest.fixture
