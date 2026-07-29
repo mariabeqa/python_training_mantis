@@ -6,6 +6,8 @@ from fixture.navigation import NavigationHelper
 from fixture.project import ProjectHelper
 from fixture.session import SessionHelper
 from fixture.signup import SignupHelper
+from fixture.soap import SOAPHelper
+
 
 class Application:
 
@@ -28,6 +30,7 @@ class Application:
         self.james = JamesHelper(self)
         self.mail = MailHelper(self)
         self.signup = SignupHelper(self)
+        self.soap = SOAPHelper(self)
 
 
     def is_valid(self):
